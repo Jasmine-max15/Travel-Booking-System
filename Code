@@ -1,0 +1,116 @@
+Python Code:
+
+import mysql.connector
+def connect_db():
+    try:
+        db = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="JS1503@2004",
+            database="travel_system",
+            port=3306)
+        print("✅ Connected to database!")
+        return db
+    except Exception as e:
+        print("❌ Connection failed:", e)
+        exit()
+
+db = connect_db()
+cursor = db.cursor()
+def add_customer():
+    name = input("Enter name: ")
+    email = input("Enter email: ")
+
+    try:
+        cursor.execute(
+            "INSERT INTO Customers (name, email) VALUES (%s, %s)",
+            (name, email))
+        db.commit()
+        print("✅ Customer added!")
+    except Exception as e:
+        print("❌ Error:", e)
+def add_package():
+    destination = input("Enter destination: ")
+    price = int(input("Enter price: "))
+    try:
+        cursor.execute(
+            "INSERT INTO Packages (destination, price) VALUES (%s, %s)",
+            (destination, price))
+        db.commit()
+        print("✅ Package added!")
+    except Exception as e:
+        print("❌ Error:", e)
+def book_trip():
+    cid = int(input("Enter Customer ID: "))
+    pid = int(input("Enter Package ID: "))
+    date = input("Enter travel date (YYYY-MM-DD): ")
+    try:
+        cursor.execute(
+            "INSERT INTO Bookings (customer_id, package_id, travel_date) VALUES (%s, %s, %s)",
+            (cid, pid, date))
+        db.commit()
+        print("✅ Booking successful!")
+    except Exception as e:
+        print("❌ Error:", e)
+
+def view_bookings():
+    cursor.execute("""
+        SELECT Customers.name, Packages.destination, Packages.price, Bookings.travel_date
+        FROM Bookings
+        JOIN Customers ON Bookings.customer_id = Customers.customer_id
+        JOIN Packages ON Bookings.package_id = Packages.package_id
+    """)
+    data = cursor.fetchall()
+    if not data:
+        print("⚠️ No bookings found")
+    else:
+        print("\n📌 Bookings:")
+        for row in data:
+            print(f"Customer: {row[0]} | Destination: {row[1]} | Price: {row[2]} | Date: {row[3]}")
+def menu():
+    while True:
+        print("\n===== Travel Booking System =====")
+        print("1. Add Customer")
+        print("2. Add Package")
+        print("3. Book Trip")
+        print("4. View Bookings")
+        print("5. Exit")
+        choice = input("Enter choice: ")
+        if choice == "1":
+            add_customer()
+        elif choice == "2":
+            add_package()
+        elif choice == "3":
+            book_trip()
+        elif choice == "4":
+            view_bookings()
+        elif choice == "5":
+            print("👋 Exiting...")
+            break
+        else:
+            print("❌ Invalid choice")
+if __name__ == "__main__":
+    menu()
+
+Database Code:
+
+CREATE DATABASE IF NOT EXISTS travel_system;
+USE travel_system;
+CREATE TABLE Customers (
+    customer_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100),
+    email VARCHAR(100));
+CREATE TABLE Packages (
+    package_id INT AUTO_INCREMENT PRIMARY KEY,
+    destination VARCHAR(100),
+    price INT);
+CREATE TABLE Bookings (
+    booking_id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT,
+    package_id INT,
+    travel_date DATE,
+    FOREIGN KEY (customer_id) REFERENCES Customers(customer_id),
+    FOREIGN KEY (package_id) REFERENCES Packages(package_id));
+select * from Customers;
+select * from Packages;
+select * from Bookings;
